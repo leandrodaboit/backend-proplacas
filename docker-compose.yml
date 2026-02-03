@@ -1,0 +1,72 @@
+services:
+  laravel.test:
+    build:
+      context: .
+      dockerfile: docker/local/Dockerfile
+      args:
+        user: sail
+        uid: ${WWWUSER:-1000}
+    image: proplacas-api
+    container_name: proplacas-api
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    environment:
+      WWWUSER: ${WWWUSER:-1000}
+      LARAVEL_SAIL: 1
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-backend_proplacas}
+      DB_USERNAME: ${DB_USERNAME:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-root}
+    networks:
+      - proplacas
+    depends_on:
+      db:
+        condition: service_healthy
+    tty: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  db:
+    image: postgres:15-alpine
+    container_name: proplacas-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-backend_proplacas}
+      POSTGRES_USER: ${DB_USERNAME:-root}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-root}
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    networks:
+      - proplacas
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-root} -d ${DB_DATABASE:-backend_proplacas}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  nginx:
+    image: nginx:alpine
+    container_name: proplacas-nginx
+    restart: unless-stopped
+    ports:
+      - "82:80"
+    volumes:
+      - ./:/var/www
+      - ./docker/local/nginx.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - proplacas
+    depends_on:
+      - laravel.test
+
+networks:
+  proplacas:
+    driver: bridge
+
+volumes:
+  dbdata:
