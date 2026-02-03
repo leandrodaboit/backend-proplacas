@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, HasRoles, Notifiable;
 
     protected $fillable = [
         'name',
@@ -51,17 +52,22 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->tipo === 'admin';
+        return $this->tipo === 'admin' || $this->hasRole('super-admin');
     }
 
     public function isOperador(): bool
     {
-        return $this->tipo === 'operador';
+        return $this->tipo === 'operador' || $this->hasRole('operador');
     }
 
     public function isCliente(): bool
     {
-        return $this->tipo === 'cliente';
+        return $this->tipo === 'cliente' || $this->hasRole('cliente');
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole('super-admin');
     }
 
     public function updateLastLogin(?string $ip = null): void
