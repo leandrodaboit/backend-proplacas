@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -12,24 +11,14 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
-        User::factory()->admin()->create([
-            'name' => 'Admin',
-            'sobrenome' => 'Sistema',
-            'email' => 'admin@proplacas.com.br',
+        $this->call([
+            PlanSeeder::class,
+            CompanySeeder::class,
         ]);
 
-        User::factory()->operador()->create([
-            'name' => 'Operador',
-            'sobrenome' => 'Teste',
-            'email' => 'operador@proplacas.com.br',
-        ]);
+        // Usuários adicionais para teste (opcional, vinculados a empresas fictícias se necessário)
+        // User::factory()->create([...]);
 
-        User::factory()->create([
-            'name' => 'Cliente',
-            'sobrenome' => 'Teste',
-            'email' => 'cliente@proplacas.com.br',
-        ]);
-
-        $this->command->info('Usuários de teste criados com senha: password');
+        $this->command->info('Database seeded successfully!');
     }
 }

@@ -17,7 +17,8 @@ class RegisterRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'min:2', 'max:100'],
-            'sobrenome' => ['nullable', 'string', 'max:100'],
+            'sobrenome' => ['required', 'string', 'min:2', 'max:100'],
+            'empresa' => ['required', 'string', 'min:2', 'max:100'],
             'email' => ['required', 'email', 'unique:users,email', 'max:255'],
             'telefone' => ['nullable', 'string', 'max:20'],
             'password' => [
@@ -39,6 +40,12 @@ class RegisterRequest extends FormRequest
             'name.required' => 'O nome é obrigatório.',
             'name.min' => 'O nome deve ter pelo menos 2 caracteres.',
             'name.max' => 'O nome deve ter no máximo 100 caracteres.',
+            'sobrenome.required' => 'O sobrenome é obrigatório.',
+            'sobrenome.min' => 'O sobrenome deve ter pelo menos 2 caracteres.',
+            'sobrenome.max' => 'O sobrenome deve ter no máximo 100 caracteres.',
+            'empresa.required' => 'A empresa é obrigatória.',
+            'empresa.min' => 'A empresa deve ter pelo menos 2 caracteres.',
+            'empresa.max' => 'A empresa deve ter no máximo 100 caracteres.',
             'email.required' => 'O e-mail é obrigatório.',
             'email.email' => 'Informe um e-mail válido.',
             'email.unique' => 'Este e-mail já está cadastrado.',
@@ -59,6 +66,7 @@ class RegisterRequest extends FormRequest
             deviceName: $this->validated('device_name'),
             ip: $this->ip() ?? '0.0.0.0',
             sobrenome: $this->validated('sobrenome'),
+            empresa: $this->validated('empresa'),
             telefone: $this->validated('telefone'),
             tipo: $this->validated('tipo') ?? 'cliente',
         );

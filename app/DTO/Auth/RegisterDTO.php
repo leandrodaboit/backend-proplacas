@@ -12,7 +12,8 @@ class RegisterDTO extends Data
         public readonly string $password,
         public readonly string $deviceName,
         public readonly string $ip,
-        public readonly ?string $sobrenome = null,
+        public readonly string $sobrenome,
+        public readonly string $empresa,
         public readonly ?string $telefone = null,
         public readonly string $tipo = 'cliente',
     ) {}

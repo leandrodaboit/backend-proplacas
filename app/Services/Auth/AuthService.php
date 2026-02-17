@@ -6,9 +6,12 @@ use App\DTO\Auth\AuthResultDTO;
 use App\DTO\Auth\LoginDTO;
 use App\DTO\Auth\RegisterDTO;
 use App\Exceptions\AuthenticationException;
+use App\Models\Company;
+use App\Models\Plan;
 use App\Models\User;
 use App\Repositories\Interfaces\UserRepositoryInterface;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
@@ -21,26 +24,54 @@ class AuthService
 
     public function register(RegisterDTO $dto): AuthResultDTO
     {
-        $user = $this->userRepository->create([
-            'name' => $dto->name,
-            'sobrenome' => $dto->sobrenome,
-            'email' => $dto->email,
-            'telefone' => $dto->telefone,
-            'password' => $dto->password,
-            'tipo' => $dto->tipo,
-        ]);
+        return DB::transaction(function () use ($dto) {
+            // 1. Criar o usuário
+            $user = $this->userRepository->create([
+                'name' => $dto->name,
+                'sobrenome' => $dto->sobrenome,
+                'email' => $dto->email,
+                'telefone' => $dto->telefone,
+                'password' => $dto->password,
+                'tipo' => $dto->tipo,
+            ]);
 
-        $token = $this->tokenService->createToken($user, $dto->deviceName, $dto->ip);
+            // 2. Buscar ou criar o plano padrão (Free)
+            $plan = Plan::firstOrCreate(
+                ['code' => 'free'],
+                [
+                    'name' => 'Free',
+                    'price' => 0.00,
+                    'limits' => json_encode(['users' => 1, 'storage' => '1GB']),
+                    'is_active' => true
+                ]
+            );
 
-        $this->userRepository->updateLastLogin($user, $dto->ip);
+            // 3. Criar a empresa
+            $company = Company::create([
+                'name' => $dto->empresa,
+                'plan_id' => $plan->id,
+                'status' => 'active'
+            ]);
 
-        Log::channel('daily')->info('Auth: register', [
-            'user_id' => $user->id,
-            'email' => $user->email,
-            'ip' => $dto->ip,
-        ]);
+            // 4. Vincular usuário à empresa como owner
+            $company->users()->attach($user->id, [
+                'is_owner' => true,
+                'is_active' => true
+            ]);
 
-        return new AuthResultDTO($user, $token);
+            // 5. Gerar token e logar
+            $token = $this->tokenService->createToken($user, $dto->deviceName, $dto->ip);
+            $this->userRepository->updateLastLogin($user, $dto->ip);
+
+            Log::channel('daily')->info('Auth: register', [
+                'user_id' => $user->id,
+                'company_id' => $company->id,
+                'email' => $user->email,
+                'ip' => $dto->ip,
+            ]);
+
+            return new AuthResultDTO($user, $token);
+        });
     }
 
     public function login(LoginDTO $dto): AuthResultDTO
