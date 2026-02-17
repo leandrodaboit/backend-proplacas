@@ -1,24 +1,32 @@
-*.log
-.DS_Store
+# IDE & Editor
+/.idea/              # PHPStorm / JetBrains
+/.vscode/            # VSCode (não utilizado)
+/.fleet/             # JetBrains Fleet
+/.zed/               # Zed Editor (não utilizado)
+
+# Environment
 .env
 .env.backup
 .env.production
-.phpactor.json
-.phpunit.result.cache
-/.fleet
-/.idea
-/.nova
-/.phpunit.cache
-/.vscode
-/.zed
-/auth.json
+.env.local
+
+# Laravel
 /node_modules
+/vendor
 /public/build
 /public/hot
 /public/storage
 /storage/*.key
 /storage/pail
-/vendor
+auth.json
+.phpunit.result.cache
+.phpunit.cache
+
+# OS
+.DS_Store
+Thumbs.db
 Homestead.json
 Homestead.yaml
-Thumbs.db
+
+# Logs
+*.log
